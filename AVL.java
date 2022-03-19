@@ -40,8 +40,6 @@ static class Detalhes_cartao implements Comparable<Detalhes_cartao>
 
     public void  mostra_cartao(Usuario user1)
     {
-        Collections.sort(user1.cartoes);
-        
         for(int i = 0; i < user1.cartoes.size() ; i++)
         {
             System.out.print(user1.cartoes.get(i).numero_cartao + " ");
@@ -83,8 +81,23 @@ static class No {
             System.out.println("NOVO CARTAO INSERIDO");
             Detalhes_cartao detalhes = new Detalhes_cartao(cartao , data);
             no.user.cartoes.add(detalhes);
+            Collections.sort(user.cartoes);
         }
-    } 
+    }
+
+    No printInOrder(ArrayList<No> elementos , No raiz)
+    {
+    if(raiz.esquerda != null )
+    raiz.esquerda = raiz.esquerda.printInOrder(elementos , raiz.esquerda); // Left
+
+    elementos.add(raiz); // Node
+
+    if( raiz.direita != null )
+    raiz.direita = raiz.direita.printInOrder(elementos , raiz.direita); // Right
+
+    return raiz;
+    }
+ 
 } 
  
 static class Arvore 
@@ -117,8 +130,8 @@ static class Arvore
         y.esquerda = filho;
  
         //Por as alturas novas
-        y.altura = Math.max(y.esquerda.altura, y.direita.altura) + 1;
-        x.altura = Math.max(x.esquerda.altura , x.direita.altura) + 1;
+        y.altura = Math.max(altura(y.esquerda), altura(y.direita)) + 1;
+        x.altura = Math.max(altura(x.esquerda) , altura(x.direita)) + 1;
  
         
         return x;
@@ -135,11 +148,9 @@ static class Arvore
         y.esquerda = x;
         x.direita = filho;
  
-        //  Update heights
-        x.altura = Math.max(x.esquerda.altura , x.direita.altura) + 1;
-        y.altura = Math.max(y.esquerda.altura, y.direita.altura) + 1;
- 
-        // Return new root
+        x.altura = Math.max(altura(x.esquerda) , altura(x.direita)) + 1;
+        y.altura = Math.max(altura(y.esquerda), altura(y.direita)) + 1;
+
         return y;
     }
 
@@ -152,12 +163,12 @@ static class Arvore
             return no;
         }
         //Novo no e mais pequeno que o atual ir para a esquerda
-        if (no.user.nome_user.compareTo(user) < 0)
+        if (no.user.nome_user.compareTo(user) > 0)
             no.esquerda = consulta(no.esquerda, user);
         
 
         //Novo no e maior que o atual, ir para a direita
-        else if (no.user.nome_user.compareTo(user) > 0)
+        else if (no.user.nome_user.compareTo(user) < 0)
             no.direita = consulta(no.direita, user);
 
 
@@ -170,8 +181,6 @@ static class Arvore
     }
 
 
-
-
     No acrescenta(No no, Usuario user) 
     {
         //Encontramos espaco entao criamos novo No.
@@ -179,13 +188,16 @@ static class Arvore
         {
             System.out.println("NOVO UTILIZADOR CRIADO");
             return (new No(user));
-        }
+        } 
+
         //Novo no e mais pequeno que o atual ir para a esquerda
-        if (no.user.nome_user.compareTo(user.nome_user) < 0)
+        if (no.user.nome_user.compareTo(user.nome_user) > 0)
             no.esquerda = acrescenta(no.esquerda, user);
+
         //Novo no e maior que o atual, ir para a direita
-        else if (no.user.nome_user.compareTo(user.nome_user) > 0)
+        else if (no.user.nome_user.compareTo(user.nome_user) < 0)
             no.direita = acrescenta(no.direita, user);
+
         //Encontramos um no igual    
         else
         {
@@ -201,23 +213,23 @@ static class Arvore
         
 
         // Caso direita esquerda
-        if (balance < -1 && no.direita.user.nome_user.compareTo(user.nome_user) < 0 ) 
+        if (balance < -1 && no.direita.user.nome_user.compareTo(user.nome_user) > 0 ) 
         {
             no.direita = rotacao_direita(no.direita);
             return rotacao_esquerda(no);
         }
 
         // Caso direita direita
-        if (balance < -1 && no.direita.user.nome_user.compareTo(user.nome_user) > 0)
+        if (balance < -1 && no.direita.user.nome_user.compareTo(user.nome_user) < 0)
         return rotacao_esquerda(no);
          
         //Caso Esquerda Esquerda
-        if (balance > 1 && no.esquerda.user.nome_user.compareTo(no.user.nome_user) < 0)
+        if (balance > 1 && no.esquerda.user.nome_user.compareTo(user.nome_user) > 0)
             return rotacao_direita(no);
  
  
         // Caso esquerda direita
-        if (balance > 1 && no.esquerda.user.nome_user.compareTo(no.user.nome_user) > 0) 
+        if (balance > 1 && no.esquerda.user.nome_user.compareTo(user.nome_user) < 0) 
         {
             no.esquerda = rotacao_esquerda(no.esquerda);
             return rotacao_direita(no);
@@ -271,7 +283,23 @@ static class Arvore
 
         if(parametros[0].equals("LISTAGEM"))
         {
-           // raiz.listagem();    //fazer recursao para a esquerda, no meio dar .append e depois recursao para a direita.
+           ArrayList<No> elementos = new ArrayList<>();
+           raiz.raiz.printInOrder(elementos , raiz.raiz);
+
+           for(int i = 0 ; i < elementos.size() ; i ++)
+           {    
+               System.out.print(elementos.get(i).user.nome_user + " ");
+            for (int x = 0 ; x < elementos.get(i).user.cartoes.size() ; x++)
+            {
+                System.out.print(elementos.get(i).user.cartoes.get(x).numero_cartao + " ");
+                if(x == elementos.get(i).user.cartoes.size() - 1)
+                System.out.print(elementos.get(i).user.cartoes.get(x).data_cartao);
+                else
+                System.out.print(elementos.get(i).user.cartoes.get(x).data_cartao + " ");
+            }
+            System.out.print("\n");
+           }
+           System.out.println("FIM");
         }
 
         if(parametros[0].equals("APAGA"))
@@ -297,6 +325,6 @@ static class Arvore
         Scanner sc = new Scanner(System.in);
 
         opcoes(sc , tree);
-
+        sc.close();
     }
 }
