@@ -1,11 +1,12 @@
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Scanner;
 
 public class AVL
 {
-static class Detalhes_cartao{
-
+static class Detalhes_cartao implements Comparable<Detalhes_cartao>
+{
     String numero_cartao,data_cartao;
 
     public Detalhes_cartao(String numero , String data)
@@ -13,6 +14,16 @@ static class Detalhes_cartao{
         this.numero_cartao = numero;
         this.data_cartao = data;
     }
+
+    @Override public int compareTo(Detalhes_cartao cartao)
+    {
+        String compara_numero = ((Detalhes_cartao)cartao).numero_cartao;
+
+        return 
+        this.numero_cartao.compareTo(compara_numero);
+    }
+
+
 }
 
   static class Usuario{
@@ -27,6 +38,18 @@ static class Detalhes_cartao{
         this.cartoes.add(cartao);
     }
 
+    public void  mostra_cartao(Usuario user1)
+    {
+        Collections.sort(user1.cartoes);
+        
+        for(int i = 0; i < user1.cartoes.size() ; i++)
+        {
+            System.out.print(user1.cartoes.get(i).numero_cartao + " ");
+            System.out.println(user1.cartoes.get(i).data_cartao);
+        }
+        System.out.println("FIM");
+    }
+
 }
 
 
@@ -35,12 +58,13 @@ static class No {
     int altura;
     No esquerda, direita;
  
-    No(Usuario user1) {
+    No(Usuario user1) 
+    {
         user = user1;
         altura = 1;
     }
 
-    static void atualiza_cartao(No no , String cartao , String data)
+    void atualiza_cartao(No no , String cartao , String data)
     {
         int encontrado = 0;
 
@@ -119,11 +143,40 @@ static class Arvore
         return y;
     }
 
- 
+    No consulta(No no, String user) 
+    {
+        //Chegamos ao fim e nao foi encontrado
+        if (no == null)
+        {
+            System.out.println("NAO ENCONTRADO");
+            return no;
+        }
+        //Novo no e mais pequeno que o atual ir para a esquerda
+        if (no.user.nome_user.compareTo(user) < 0)
+            no.esquerda = consulta(no.esquerda, user);
+        
+
+        //Novo no e maior que o atual, ir para a direita
+        else if (no.user.nome_user.compareTo(user) > 0)
+            no.direita = consulta(no.direita, user);
+
+
+        //Encontramos um no igual    
+        else{
+            no.user.mostra_cartao(no.user);
+            return no;
+        }
+        return no;
+    }
+
+
+
+
     No acrescenta(No no, Usuario user) 
     {
         //Encontramos espaco entao criamos novo No.
-        if (no == null){
+        if (no == null)
+        {
             System.out.println("NOVO UTILIZADOR CRIADO");
             return (new No(user));
         }
@@ -134,8 +187,9 @@ static class Arvore
         else if (no.user.nome_user.compareTo(user.nome_user) > 0)
             no.direita = acrescenta(no.direita, user);
         //Encontramos um no igual    
-        else{
-            //no.atualiza_cartao(user);
+        else
+        {
+            no.atualiza_cartao(no , user.cartoes.get(0).numero_cartao , user.cartoes.get(0).data_cartao);
             return no;
         }
  
@@ -196,32 +250,36 @@ static class Arvore
     {   
         int fim = 0;
 
-        while(fim == 0){
+        while(fim == 0)
+        {
+
         String[] parametros;
         parametros = le_parametros(sc).split(" ");
 
 
         if(parametros[0].equals("ACRESCENTA"))
         {
-
             Detalhes_cartao detalhes = new Detalhes_cartao(parametros[2] , parametros[3]);
             Usuario user = new Usuario(parametros[1] , detalhes);
-            raiz.acrescenta(raiz.raiz , user);
-
+            raiz.raiz = raiz.acrescenta(raiz.raiz , user);
         }
+
         if(parametros[0].equals("CONSULTA"))
         {
-            
+            raiz.consulta(raiz.raiz , parametros[1]);
         }
+
         if(parametros[0].equals("LISTAGEM"))
         {
-                //fazer recursao para a esquerda, no meio dar .append e depois recursao para a direita.
+           // raiz.listagem();    //fazer recursao para a esquerda, no meio dar .append e depois recursao para a direita.
         }
+
         if(parametros[0].equals("APAGA"))
         {
             raiz.raiz = null;
             
         }
+
         if(parametros[0].equals("FIM"))
         {
             System.out.println("FIM");
@@ -235,24 +293,10 @@ static class Arvore
     public static void main(String[] args) 
     {   
 
-
-        Detalhes_cartao detalhes = new Detalhes_cartao("parametros[2]" , "parametros[3]");
-        Usuario user = new Usuario("parametros[1]" , detalhes);
-        System.out.println(user.cartoes.toString());
         Arvore tree = new Arvore();
         Scanner sc = new Scanner(System.in);
-        /* Constructing tree given in the above figure */
 
- 
-        /* The constructed AVL Tree would be
-             30
-            /  \
-          20   40
-         /  \     \
-        10  25    50
-        */
-        System.out.println("Preorder traversal" +
-                        " of constructed tree is : ");
+        opcoes(sc , tree);
 
     }
 }
