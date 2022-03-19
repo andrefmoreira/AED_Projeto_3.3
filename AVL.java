@@ -1,0 +1,258 @@
+import java.io.*;
+import java.util.ArrayList;
+import java.util.Scanner;
+
+public class AVL
+{
+static class Detalhes_cartao{
+
+    String numero_cartao,data_cartao;
+
+    public Detalhes_cartao(String numero , String data)
+    {
+        this.numero_cartao = numero;
+        this.data_cartao = data;
+    }
+}
+
+  static class Usuario{
+
+    String nome_user;
+    ArrayList<Detalhes_cartao> cartoes = new ArrayList<>();
+
+
+    public Usuario(String nome , Detalhes_cartao cartao)
+    {
+        this.nome_user = nome;
+        this.cartoes.add(cartao);
+    }
+
+}
+
+
+static class No {
+    Usuario user;
+    int altura;
+    No esquerda, direita;
+ 
+    No(Usuario user1) {
+        user = user1;
+        altura = 1;
+    }
+
+    static void atualiza_cartao(No no , String cartao , String data)
+    {
+        int encontrado = 0;
+
+       for(int i = 0; i < no.user.cartoes.size() ; i++)
+       {
+            if(no.user.cartoes.get(i).numero_cartao.equals(cartao))
+            {
+                System.out.println("CARTAO ATUALIZADO");
+                encontrado++;
+                no.user.cartoes.get(i).data_cartao = data;
+            }
+        }
+
+        if(encontrado == 0)
+        {
+            System.out.println("NOVO CARTAO INSERIDO");
+            Detalhes_cartao detalhes = new Detalhes_cartao(cartao , data);
+            no.user.cartoes.add(detalhes);
+        }
+    } 
+} 
+ 
+static class Arvore 
+{
+    No raiz;
+ 
+    //Muda altura do no
+    int altura(No no) {
+        if (no == null)
+            return 0;
+ 
+        return no.altura;
+    }
+ 
+    // da fator de equilibrio da arvore.
+    int equilibrio(No N) {
+        if (N == null)
+            return 0;
+    
+        return altura(N.esquerda) - altura(N.direita);
+    }
+
+    No rotacao_direita(No y) 
+    {
+        No x = y.esquerda;
+        No filho = x.direita;
+ 
+        //x fica no sitio de y e y fica com o filho de x.
+        x.direita = y;
+        y.esquerda = filho;
+ 
+        //Por as alturas novas
+        y.altura = Math.max(y.esquerda.altura, y.direita.altura) + 1;
+        x.altura = Math.max(x.esquerda.altura , x.direita.altura) + 1;
+ 
+        
+        return x;
+    }
+
+ 
+
+    No rotacao_esquerda(No x) 
+    {
+        No y = x.direita;
+        No filho = y.esquerda;
+ 
+        //y fica no sitio de x e x fica com o filho de y. 
+        y.esquerda = x;
+        x.direita = filho;
+ 
+        //  Update heights
+        x.altura = Math.max(x.esquerda.altura , x.direita.altura) + 1;
+        y.altura = Math.max(y.esquerda.altura, y.direita.altura) + 1;
+ 
+        // Return new root
+        return y;
+    }
+
+ 
+    No acrescenta(No no, Usuario user) 
+    {
+        //Encontramos espaco entao criamos novo No.
+        if (no == null){
+            System.out.println("NOVO UTILIZADOR CRIADO");
+            return (new No(user));
+        }
+        //Novo no e mais pequeno que o atual ir para a esquerda
+        if (no.user.nome_user.compareTo(user.nome_user) < 0)
+            no.esquerda = acrescenta(no.esquerda, user);
+        //Novo no e maior que o atual, ir para a direita
+        else if (no.user.nome_user.compareTo(user.nome_user) > 0)
+            no.direita = acrescenta(no.direita, user);
+        //Encontramos um no igual    
+        else{
+            //no.atualiza_cartao(user);
+            return no;
+        }
+ 
+        //Atualizar a altura.
+        no.altura = 1 + Math.max(altura(no.esquerda),
+                              altura(no.direita));
+        //Receber fator de equilibrio
+        int balance = equilibrio(no);
+        
+
+        // Caso direita esquerda
+        if (balance < -1 && no.direita.user.nome_user.compareTo(user.nome_user) < 0 ) 
+        {
+            no.direita = rotacao_direita(no.direita);
+            return rotacao_esquerda(no);
+        }
+
+        // Caso direita direita
+        if (balance < -1 && no.direita.user.nome_user.compareTo(user.nome_user) > 0)
+        return rotacao_esquerda(no);
+         
+        //Caso Esquerda Esquerda
+        if (balance > 1 && no.esquerda.user.nome_user.compareTo(no.user.nome_user) < 0)
+            return rotacao_direita(no);
+ 
+ 
+        // Caso esquerda direita
+        if (balance > 1 && no.esquerda.user.nome_user.compareTo(no.user.nome_user) > 0) 
+        {
+            no.esquerda = rotacao_esquerda(no.esquerda);
+            return rotacao_direita(no);
+        }
+ 
+        return no;
+    }
+}
+ 
+    static String le_parametros(Scanner sc)
+    {
+        String str;  
+         
+        try{
+                
+        str = sc.nextLine();
+
+        }
+        //Se o valor for um valor causar um erro, ira ser avisado ao usuario que o valor nao e valido.
+        catch (java.util.InputMismatchException e){
+            System.out.printf("Valor Introduzido nao e valido.");
+            return null;
+        }
+        
+        return str;
+    }
+
+
+    static void opcoes(Scanner sc,Arvore raiz)
+    {   
+        int fim = 0;
+
+        while(fim == 0){
+        String[] parametros;
+        parametros = le_parametros(sc).split(" ");
+
+
+        if(parametros[0].equals("ACRESCENTA"))
+        {
+
+            Detalhes_cartao detalhes = new Detalhes_cartao(parametros[2] , parametros[3]);
+            Usuario user = new Usuario(parametros[1] , detalhes);
+            raiz.acrescenta(raiz.raiz , user);
+
+        }
+        if(parametros[0].equals("CONSULTA"))
+        {
+            
+        }
+        if(parametros[0].equals("LISTAGEM"))
+        {
+                //fazer recursao para a esquerda, no meio dar .append e depois recursao para a direita.
+        }
+        if(parametros[0].equals("APAGA"))
+        {
+            raiz.raiz = null;
+            
+        }
+        if(parametros[0].equals("FIM"))
+        {
+            System.out.println("FIM");
+            fim++;
+            sc.close();
+        }
+    }
+}
+
+
+    public static void main(String[] args) 
+    {   
+
+
+        Detalhes_cartao detalhes = new Detalhes_cartao("parametros[2]" , "parametros[3]");
+        Usuario user = new Usuario("parametros[1]" , detalhes);
+        System.out.println(user.cartoes.toString());
+        Arvore tree = new Arvore();
+        Scanner sc = new Scanner(System.in);
+        /* Constructing tree given in the above figure */
+
+ 
+        /* The constructed AVL Tree would be
+             30
+            /  \
+          20   40
+         /  \     \
+        10  25    50
+        */
+        System.out.println("Preorder traversal" +
+                        " of constructed tree is : ");
+
+    }
+}
