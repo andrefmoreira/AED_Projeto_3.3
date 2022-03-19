@@ -276,13 +276,13 @@ static class Arvore
 
         if(parametros[0].equals("APAGA"))
         {
+            System.out.println("LISTAGEM APAGADA");
             raiz.raiz = null;
             
         }
 
         if(parametros[0].equals("FIM"))
         {
-            System.out.println("FIM");
             fim++;
             sc.close();
         }
